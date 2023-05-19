@@ -1,3 +1,5 @@
+#  Copyright (c) 2023 AMProduction
+
 from fastapi import FastAPI
 
 app = FastAPI()

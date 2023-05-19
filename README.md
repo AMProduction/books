@@ -1,0 +1,1 @@
+Learn how to create an API that serves data from a database using FastAPI, Flask, MySQL, Postman, SQLAlchemy, endpoints, and more.

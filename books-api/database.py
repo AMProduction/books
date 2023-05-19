@@ -1,3 +1,5 @@
+#  Copyright (c) 2023 AMProduction
+
 from sqlalchemy import Column, String, Integer, create_engine, ForeignKey
 from sqlalchemy.orm import registry, relationship
 
