@@ -1,10 +1,10 @@
 #  Copyright (c) 2023 AMProduction
 
-from sqlalchemy import Column, String, Integer, create_engine, ForeignKey
-from sqlalchemy.orm import registry, relationship
+from sqlalchemy import Column, String, Integer, create_engine, ForeignKey, select
+from sqlalchemy.orm import registry, relationship, Session
 
 engine = create_engine(
-        'mysql+mysqlconnector://root:password@localhost:3306/books',
+        'mysql+mysqlconnector://root:8375745@localhost:3306/books',
         echo=True)
 
 mapper_registry = registry()
@@ -53,3 +53,40 @@ class BookAuthor(Base):
 
 
 Base.metadata.create_all(engine)
+
+
+def add_book(book: Book, author: Author):
+    with Session(engine) as session:
+        existing_book = session.execute(
+                select(Book).filter(Book.title == book.title, Book.number_of_pages == book.number_of_pages)).scalar()
+        if existing_book is not None:
+            print("Book has already been added.")
+            return
+        print("Book does not exist. Adding book")
+        session.add(book)
+
+        existing_author = session.execute(select(Author).filter(Author.first_name == author.first_name,
+                                                                Author.last_name == author.last_name)).scalar()
+        if existing_author is not None:
+            print("Author has already been added")
+            session.flush()
+            pairing = BookAuthor(author_id=existing_author.author_id, book_id=book.book_id)
+        else:
+            print("Author does not exist! Adding author")
+            session.add(author)
+            session.flush()
+            pairing = BookAuthor(author_id=author.author_id, book_id=book.book_id)
+
+        session.add(pairing)
+        session.commit()
+        print("New pairing added " + str(pairing))
+
+
+def get_book(book_id: int):
+    with Session(engine) as session:
+        book = session.execute(select(Book).filter(Book.book_id == book_id)).scalar()
+        if book is None:
+            raise Exception("Book does not exist")
+        pairing = session.execute(select(BookAuthor).filter(BookAuthor.book_id == book_id)).scalar()
+        author = session.execute(select(Author).filter(Author.author_id == pairing.author_id)).scalar()
+        return book, author
